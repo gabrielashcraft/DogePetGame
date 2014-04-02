@@ -31,6 +31,8 @@ Doge.prototype.feed = function (food)
 	{
 		this.hunger = 1100;
 	}
+	this.instance.gotoAndStop('eating');
+	//this.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle')}, 3000);
 	this.dispatchEvent('HUNGER_CHANGED');
 }
 
