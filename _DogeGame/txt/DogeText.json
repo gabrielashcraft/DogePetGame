@@ -1,0 +1,33 @@
+{
+	"hunger":
+	{
+		"worst":"such starve",
+		"bad": "pls feed",
+		"average": "such hungry",
+		"good": "much sated",
+		"great": "very fed",
+		"best": "wow"
+	},
+
+	"happiness":
+	{
+		"worst":"so depress",
+		"bad": "much sad",
+		"average": "very meh",
+		"good": "such happy",
+		"great": "much awesome",
+		"best": "wow"
+	},
+
+	"energy":
+	{
+		"worst": "pls rest",
+		"bad": "very exhaust",
+		"average": "much yawn",
+		"good": "so energy",
+		"great": "such playful",
+		"best": "wow"
+	},
+
+	"dead":"such dead"
+}

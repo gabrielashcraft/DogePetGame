@@ -2,27 +2,29 @@ DogeGame = window.DogeGame || {};
 
 (function()
 {
+	var root;
 	var canvas, stage;
 	var images = [];
+	var json;
+	var raiz;
 
 	//var dogeColors = ['tan', 'cream', 'black'];
 	var dogeColors = new Array('tan', 'cream', 'black');
+
+	//var statusLevel = [20,40,60,80,100];
+	var statusName = ['worst','bad','average','good', 'great','best'];
 
 	var myDoge;
 
 	window.onload = function()
 	{
 		//----- LOADING ASSETS -----//
-		var manifest = [
-			{src:"./images/pickyourshibe.jpg", id:"pickyourshibe"},
-			{src:"./images/cub_tan.jpg", id:"cub_tan"},
-			{src:"./images/cub_cream.jpg", id:"cub_cream"},
-			{src:"./images/cub_black.jpg", id:"cub_black"}
+		/*var manifest = [
 		];
 
 		var loader = new createjs.LoadQueue(false);
 		loader.addEventListener("fileload", handleFileLoad);
-		loader.addEventListener("complete", filesLoaded);
+		loader.addEventListener("complete", loadJson);
 		loader.loadManifest(manifest);
 	}
 
@@ -31,13 +33,26 @@ DogeGame = window.DogeGame || {};
 		if (event.item.type == "image") { images[event.item.id] = event.result; }
 	}
 
-	function filesLoaded(event)
+	function loadJson(event)
 	{
+		console.log('json');*/
+		$.getJSON("./txt/DogeText.json", jsonLoaded.bind(this)).error(function(jqXhr, textStatus, error) {
+					alert("ERROR: " + textStatus + ", " + error);
+		});
+	}
+
+	function jsonLoaded(_json)
+	{
+		json = _json;
+
 		canvas = document.getElementById("canvas");
 		stage = new createjs.Stage(canvas);
+
+		raiz = new lib.DogePet();
+		stage.addChild(raiz);
 		stage.enableMouseOver();
 
-		createjs.Ticker.setFPS(30);
+		createjs.Ticker.setFPS(24);
 		createjs.Ticker.addEventListener("tick", stage);
 
 		newGame();
@@ -46,46 +61,57 @@ DogeGame = window.DogeGame || {};
 	//----- NEW GAME -----//
 	function newGame()
 	{
-		var newGameScreen = new createjs.Container();
-		newGameScreen.name = 'newGame';
-		stage.addChild(newGameScreen);
+		// ------------------------ DOGE SETUP ------------------------ //
+		myDoge = new Doge('tan');
 
-		var pickBG = new createjs.Bitmap(images.pickyourshibe);
-		newGameScreen.addChild(pickBG);
-
-		_doges = new createjs.Container();
-		index = 0;
-
-		for (var i = 0; i < dogeColors.length; i++)
-		{
-			_d = new Doge('cub', dogeColors[i], images['cub_'+dogeColors[i]]);
-			_d.x = 160*(i);
-			_doges.addChild(_d);
-			_d.cursor = 'pointer';
-			_d.addEventListener('click', selectShibe);
-			console.log('Such ADD', _d ,'|| Much ID', _doges.children[i].id);
-		}
-
-		_doges.regX = _doges.getBounds().width/2;
-		_doges.regY = _doges.getBounds().height;
-		_doges.x = canvas.width/2;
-		_doges.y = 300;
-
-		newGameScreen.addChild(_doges);
-	}
-
-	function selectShibe(event)
-	{
-		myDoge = event.currentTarget;
-		stage.removeChild(stage.getChildByName('newGame'));
-
-		myDoge.setAlive(true);
-		myDoge.regX = myDoge.width/2;
-		myDoge.regY = myDoge.height/2;
 		myDoge.x = canvas.width/2;
 		myDoge.y = canvas.height/2;
-		stage.addChild(myDoge);
-		console.log(myDoge);
+
+		setHungerText();
+		setHappinessText();
+		setEnergyText();
+		myDoge.addEventListener('HUNGER_CHANGED', setHungerText);
+		myDoge.addEventListener('HAPPINESS_CHANGED', setHappinessText);
+		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
+		myDoge.addEventListener('DOGE_DEAD', killDoge);
+
+		raiz.addChild(myDoge);
+
+		raiz.menu.feedPet.addEventListener('click', feedPet)
+
+	// ------------------------ DOGE SETUP ------------------------ //
+	}
+
+	function feedPet(event)
+	{
+		myDoge.feed(200)
+	}
+
+	function setHungerText(event)
+	{
+		var hunger = Math.floor(myDoge.hunger/200);
+		raiz.status.hunger_txt.text = json.hunger[statusName[hunger]];
+	}
+
+	function setHappinessText(event)
+	{
+		var happiness = Math.floor(myDoge.happiness/200);
+		raiz.status.happiness_txt.text = json.happiness[statusName[happiness]];
+	}
+
+	function setEnergyText(event)
+	{
+		var energy = Math.floor(myDoge.energy/200);
+		raiz.status.energy_txt.text = json.energy[statusName[energy]];
+	}
+
+	function killDoge(event)
+	{
+		raiz.status.hunger_txt.text = json.dead;
+		raiz.status.happiness_txt.text = json.dead;
+		raiz.status.energy_txt.text = json.dead;
+
+		raiz.menu.mouseEnabled = false;
 	}
 
 	DogeGame.getDoge = function (){return myDoge}

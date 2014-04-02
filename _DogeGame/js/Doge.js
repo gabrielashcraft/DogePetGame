@@ -1,31 +1,76 @@
-Doge.prototype = new createjs.Container();
+Doge.prototype = new lib.Doge();
 
-function Doge(age, color, sprite, alive)
+function Doge(color)
 {
-	createjs.Container.call(this);
-	this.sprite = new createjs.Bitmap(sprite)
-	this.addChild(this.sprite);
-	this.width = this.sprite.image.width;
-	this.height = this.sprite.image.height;
-	this.age = age;
+	self = this;
+
 	this.color = color;
-	this.setAlive(alive);
+	this.instance.gotoAndStop('idle');
+
+	this.hunger = 500;
+	this.happiness = 500;
+	this.energy = 500;
+
+	this.setAlive(true);
 
 	return this;
 }
 
-Doge.prototype.setStatus = function (health, hunger, energy)
+Doge.prototype.checkStatus = function ()
 {
-	this.health = health ? health : 100;
-	this.hunger = hunger ? hunger : 100;
-	this.energy = energy ? energy : 100;
+	if ((this.hunger == 0) || (this.happiness == 0) || (this.energy == 0))
+	{
+		this.setAlive(false);
+	}
 }
 
-Doge.prototype.setAlive = function (alive, health, hunger, energy)
+Doge.prototype.feed = function (food)
+{
+	this.hunger += food;
+	if (this.hunger > 1100)
+	{
+		this.hunger = 1100;
+	}
+	this.dispatchEvent('HUNGER_CHANGED');
+}
+
+Doge.prototype.beHappy = function (happy)
+{
+	this.happiness += happy;
+	this.dispatchEvent('HAPPINESS_CHANGED');
+}
+
+Doge.prototype.energize = function (rest)
+{
+	this.energy += rest;
+	this.dispatchEvent('ENERGY_CHANGED');
+}
+
+Doge.prototype.setAlive = function (alive, hunger, happiness, energy)
 {
 	this.alive = alive;
 	if (this.alive)
 	{
-		this.setStatus(health, hunger, energy);
+		this.startDecay();
 	}
+	else
+	{
+		this.instance.gotoAndStop('dead');
+		clearInterval(this.decayInterval);
+		this.dispatchEvent('DOGE_DEAD');
+	}
+}
+
+Doge.prototype.startDecay = function ()
+{
+	this.hungerRate = -2;
+
+	this.decayInterval = setInterval(this.decayStatus, 1000)
+}
+
+Doge.prototype.decayStatus = function (event)
+{
+	self.feed(self.hungerRate);
+
+	self.checkStatus();
 }
