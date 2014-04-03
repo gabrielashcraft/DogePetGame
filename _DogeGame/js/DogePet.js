@@ -12,7 +12,12 @@ var p; // shortcut to reference prototypes
 
 	this.status = new lib.statusBar();
 
-	this.addChild(this.status,this.menu);
+	// BG
+	this.shape = new cjs.Shape();
+	this.shape.graphics.f("#FFF2CA").s().p("Egx/AlfIAAyvMBj+AAAIAASvgEgx/gZxIAAruMBj+AAAIAALug");
+	this.shape.setTransform(320,240);
+
+	this.addChild(this.shape,this.status,this.menu);
 }).prototype = p = new cjs.Container();
 p.nominalBounds = new cjs.Rectangle(0,0,640,480);
 
@@ -139,14 +144,9 @@ p.nominalBounds = new cjs.Rectangle(-20.3,-5.8,40.8,11.8);
 	this.energy_txt.lineWidth = 116;
 	this.energy_txt.setTransform(506.6,25.4);
 
-	// bg
-	this.shape_3 = new cjs.Shape();
-	this.shape_3.graphics.f("#DAFCFB").s().p("Egx/AF2IAArsMBj+AAAIAALsg");
-	this.shape_3.setTransform(320,37.5);
-
-	this.addChild(this.shape_3,this.energy_txt,this.shape_2,this.happiness_txt,this.shape_1,this.hunger_txt,this.shape);
+	this.addChild(this.energy_txt,this.shape_2,this.happiness_txt,this.shape_1,this.hunger_txt,this.shape);
 }).prototype = p = new cjs.Container();
-p.nominalBounds = new cjs.Rectangle(0,0,640,75);
+p.nominalBounds = new cjs.Rectangle(19.8,25.4,606.8,26.3);
 
 
 (lib.moon_icon = function() {
@@ -448,13 +448,9 @@ p.nominalBounds = new cjs.Rectangle(-53.2,-44.8,106.2,109.5);
 	this.feedPet.setTransform(-262.9,-0.6);
 	new cjs.ButtonHelper(this.feedPet, 0, 1, 2, false, new lib.food_btn(), 3);
 
-	// bg
-	this.shape = new cjs.Shape();
-	this.shape.graphics.f("#DAFCFB").s().p("Egx/AJYIAAyvMBj/AAAIAASvg");
-
-	this.addChild(this.shape,this.feedPet,this.playPet);
+	this.addChild(this.feedPet,this.playPet);
 }).prototype = p = new cjs.Container();
-p.nominalBounds = new cjs.Rectangle(-319.9,-59.9,640,120);
+p.nominalBounds = new cjs.Rectangle(-300.6,-42.1,202.6,83.1);
 
 
 (lib.shibe_tan = function(mode,startPosition,loop) {

@@ -26,14 +26,17 @@ Doge.prototype.checkStatus = function ()
 
 Doge.prototype.feed = function (food)
 {
-	this.hunger += food;
-	if (this.hunger > 1100)
+	self.hunger += food;
+	if (self.hunger > 1100)
 	{
-		this.hunger = 1100;
+		self.hunger = 1100;
 	}
-	this.instance.gotoAndStop('eating');
-	//this.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle')}, 3000);
-	this.dispatchEvent('HUNGER_CHANGED');
+	if (food > 0)
+	{
+		self.instance.gotoAndStop('eating');
+		self.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle')}, 1500);
+	}
+	self.dispatchEvent('HUNGER_CHANGED');
 }
 
 Doge.prototype.beHappy = function (happy)

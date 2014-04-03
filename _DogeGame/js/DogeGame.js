@@ -78,6 +78,7 @@ DogeGame = window.DogeGame || {};
 		raiz.addChild(myDoge);
 
 		raiz.menu.feedPet.addEventListener('click', feedPet)
+		raiz.menu.playPet.addEventListener('click', playPet)
 
 	// ------------------------ DOGE SETUP ------------------------ //
 	}
@@ -85,6 +86,11 @@ DogeGame = window.DogeGame || {};
 	function feedPet(event)
 	{
 		myDoge.feed(200)
+	}
+
+	function playPet(event)
+	{
+		console.log('No Moonball yet. Such sad. Much tears.')
 	}
 
 	function setHungerText(event)
