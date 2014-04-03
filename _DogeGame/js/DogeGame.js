@@ -74,23 +74,26 @@ DogeGame = window.DogeGame || {};
 		myDoge.addEventListener('HAPPINESS_CHANGED', setHappinessText);
 		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
 		myDoge.addEventListener('DOGE_DEAD', killDoge);
+		myDoge.addEventListener('ACTION_OVER', enableMenu);
 
 		raiz.addChild(myDoge);
 
-		raiz.menu.feedPet.addEventListener('click', feedPet)
-		raiz.menu.playPet.addEventListener('click', playPet)
+		raiz.menu.feedPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', feedPet); });
+		raiz.menu.playPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', playPet); });
 
 	// ------------------------ DOGE SETUP ------------------------ //
 	}
 
 	function feedPet(event)
 	{
+		disableMenu();
 		myDoge.feed(200)
 	}
 
 	function playPet(event)
 	{
-		console.log('No Moonball yet. Such sad. Much tears.')
+		disableMenu();
+		myDoge.moonball();
 	}
 
 	function setHungerText(event)
@@ -118,6 +121,28 @@ DogeGame = window.DogeGame || {};
 		raiz.status.energy_txt.text = json.dead;
 
 		raiz.menu.mouseEnabled = false;
+	}
+
+	function disableMenu()
+	{
+		console.log(raiz.menu.children);
+		for (var i = 0; i < raiz.menu.children.length; i++)
+		{
+			raiz.menu.children[i].mouseEnabled = false;
+			raiz.menu.children[i].gotoAndStop(0);
+			raiz.menu.children[i].alpha = 0.5;
+		}
+		stage.update();
+	}
+
+	function enableMenu(event)
+	{
+		for (var i = 0; i < raiz.menu.children.length; i++)
+		{
+			raiz.menu.children[i].mouseEnabled = true;
+			raiz.menu.children[i].alpha = 1;
+		}
+		stage.update();
 	}
 
 	DogeGame.getDoge = function (){return myDoge}

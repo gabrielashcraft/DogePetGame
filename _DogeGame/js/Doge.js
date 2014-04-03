@@ -6,6 +6,7 @@ function Doge(color)
 
 	this.color = color;
 	this.instance.gotoAndStop('idle');
+	//this.instance.getChildAt(0).gotoAndPlay(0);
 
 	this.hunger = 500;
 	this.happiness = 500;
@@ -33,8 +34,10 @@ Doge.prototype.feed = function (food)
 	}
 	if (food > 0)
 	{
+		self.beHappy(food/10);
 		self.instance.gotoAndStop('eating');
-		self.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle')}, 1500);
+		self.instance.getChildAt(0).gotoAndPlay(0);
+		self.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle'); self.dispatchEvent('ACTION_OVER');}, 2000);
 	}
 	self.dispatchEvent('HUNGER_CHANGED');
 }
@@ -51,6 +54,26 @@ Doge.prototype.energize = function (rest)
 	this.dispatchEvent('ENERGY_CHANGED');
 }
 
+Doge.prototype.moonball = function ()
+{
+	self.instance.gotoAndStop('moonball');
+	self.instance.getChildAt(0).gotoAndPlay(0);
+	createjs.Ticker.addEventListener('tick', self.moonballTick);
+}
+
+Doge.prototype.moonballTick = function ()
+{
+	if (self.instance.getChildAt(0).currentFrame == self.instance.getChildAt(0).timeline.duration-1)
+	{
+		createjs.Ticker.removeEventListener('tick', self.moonballTick);
+		self.instance.gotoAndStop('idle');
+		self.beHappy(200);
+		self.energize(-100);
+		self.dispatchEvent('ACTION_OVER');
+	}
+}
+
+// --------------- ALIVE STATS AND DECAY -----------------//
 Doge.prototype.setAlive = function (alive, hunger, happiness, energy)
 {
 	this.alive = alive;
@@ -69,13 +92,17 @@ Doge.prototype.setAlive = function (alive, hunger, happiness, energy)
 Doge.prototype.startDecay = function ()
 {
 	this.hungerRate = -2;
+	this.sadnessRate = -2;
+	this.tiredRate = -3;
 
-	this.decayInterval = setInterval(this.decayStatus, 1000)
+	this.decayInterval = setInterval(this.decayStatus, 6000)
 }
 
 Doge.prototype.decayStatus = function (event)
 {
 	self.feed(self.hungerRate);
+	self.beHappy(self.sadnessRate);
+	self.energize(self.tiredRate);
 
 	self.checkStatus();
 }
