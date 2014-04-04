@@ -14,7 +14,7 @@ DogeGame = window.DogeGame || {};
 	//var statusLevel = [20,40,60,80,100];
 	var statusName = ['worst','bad','average','good', 'great','best'];
 
-	var myDoge;
+	var Game, myDoge;
 
 	window.onload = function()
 	{
@@ -49,6 +49,7 @@ DogeGame = window.DogeGame || {};
 		stage = new createjs.Stage(canvas);
 
 		raiz = new lib.DogePet();
+		Game = raiz.game;
 		stage.addChild(raiz);
 		stage.enableMouseOver();
 
@@ -64,24 +65,27 @@ DogeGame = window.DogeGame || {};
 		// ------------------------ DOGE SETUP ------------------------ //
 		myDoge = new Doge('tan');
 
-		myDoge.x = canvas.width/2;
-		myDoge.y = canvas.height/2;
-
 		setHungerText();
 		setHappinessText();
 		setEnergyText();
+		setCoinText();
 		myDoge.addEventListener('HUNGER_CHANGED', setHungerText);
 		myDoge.addEventListener('HAPPINESS_CHANGED', setHappinessText);
 		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
+		myDoge.addEventListener('COINS_CHANGED', setCoinText);
 		myDoge.addEventListener('DOGE_DEAD', killDoge);
 		myDoge.addEventListener('ACTION_OVER', enableMenu);
 
-		raiz.addChild(myDoge);
+		Game.addChild(myDoge);
+		// ------------------------ DOGE SETUP ------------------------ //
 
-		raiz.menu.feedPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', feedPet); });
-		raiz.menu.playPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', playPet); });
-
-	// ------------------------ DOGE SETUP ------------------------ //
+		// ------------------------ MENU SETUP ------------------------ //
+		Game.menu.feedPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', feedPet); });
+		Game.menu.playPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', playPet); });
+		Game.menu.restPet.gotoAndStop(0);
+		Game.menu.restPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', restPet); });
+		Game.menu.mineDoge.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', mineDoge); });
+		// ------------------------ MENU SETUP ------------------------ //
 	}
 
 	function feedPet(event)
@@ -96,51 +100,94 @@ DogeGame = window.DogeGame || {};
 		myDoge.moonball();
 	}
 
+	function restPet(event)
+	{
+		if (!myDoge.isResting)
+		{
+			disableMenu(Game.menu.restPet);
+			myDoge.rest();
+		}
+		else
+		{
+			enableMenu(Game.menu.restPet);
+			myDoge.wakeUp();
+		}
+	}
+
+	function mineDoge(event)
+	{
+		if (!myDoge.isMining)
+		{
+			disableMenu(Game.menu.mineDoge);
+			myDoge.mine();
+		}
+		else
+		{
+			enableMenu(Game.menu.mineDoge);
+			myDoge.stopMining();
+		}
+	}
+
 	function setHungerText(event)
 	{
 		var hunger = Math.floor(myDoge.hunger/200);
-		raiz.status.hunger_txt.text = json.hunger[statusName[hunger]];
+		Game.status.hunger_txt.text = json.hunger[statusName[hunger]];
 	}
 
 	function setHappinessText(event)
 	{
 		var happiness = Math.floor(myDoge.happiness/200);
-		raiz.status.happiness_txt.text = json.happiness[statusName[happiness]];
+		Game.status.happiness_txt.text = json.happiness[statusName[happiness]];
 	}
 
 	function setEnergyText(event)
 	{
 		var energy = Math.floor(myDoge.energy/200);
-		raiz.status.energy_txt.text = json.energy[statusName[energy]];
+		Game.status.energy_txt.text = json.energy[statusName[energy]];
+	}
+
+	function setCoinText(event)
+	{
+		Game.status.doge_txt.text = myDoge.coins;
 	}
 
 	function killDoge(event)
 	{
-		raiz.status.hunger_txt.text = json.dead;
-		raiz.status.happiness_txt.text = json.dead;
-		raiz.status.energy_txt.text = json.dead;
+		Game.status.hunger_txt.text = json.dead;
+		Game.status.happiness_txt.text = json.dead;
+		Game.status.energy_txt.text = json.dead;
 
-		raiz.menu.mouseEnabled = false;
+		Game.menu.mouseEnabled = false;
 	}
 
-	function disableMenu()
+	function disableMenu(button)
 	{
-		console.log(raiz.menu.children);
-		for (var i = 0; i < raiz.menu.children.length; i++)
+		for (var i = 0; i < Game.menu.children.length; i++)
 		{
-			raiz.menu.children[i].mouseEnabled = false;
-			raiz.menu.children[i].gotoAndStop(0);
-			raiz.menu.children[i].alpha = 0.5;
+			Game.menu.children[i].mouseEnabled = false;
+			Game.menu.children[i].gotoAndStop(0);
+			Game.menu.children[i].alpha = 0.5;
+		}
+		if (button)
+		{
+			console.log(button);
+			button.mouseEnabled = true;
+			button.alpha = 1;
+			button.gotoAndStop(1)
 		}
 		stage.update();
 	}
 
-	function enableMenu(event)
+	function enableMenu(button)
 	{
-		for (var i = 0; i < raiz.menu.children.length; i++)
+		for (var i = 0; i < Game.menu.children.length; i++)
 		{
-			raiz.menu.children[i].mouseEnabled = true;
-			raiz.menu.children[i].alpha = 1;
+			Game.menu.children[i].mouseEnabled = true;
+			Game.menu.children[i].alpha = 1;
+		}
+		if (button)
+		{
+			button.gotoAndStop(0);
 		}
 		stage.update();
 	}

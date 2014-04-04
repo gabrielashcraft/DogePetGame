@@ -6,11 +6,11 @@ function Doge(color)
 
 	this.color = color;
 	this.instance.gotoAndStop('idle');
-	//this.instance.getChildAt(0).gotoAndPlay(0);
 
 	this.hunger = 500;
 	this.happiness = 500;
 	this.energy = 500;
+	this.coins = 10;
 
 	this.setAlive(true);
 
@@ -28,10 +28,7 @@ Doge.prototype.checkStatus = function ()
 Doge.prototype.feed = function (food)
 {
 	self.hunger += food;
-	if (self.hunger > 1100)
-	{
-		self.hunger = 1100;
-	}
+	self.hunger = inRange(self.hunger);
 	if (food > 0)
 	{
 		self.beHappy(food/10);
@@ -44,14 +41,44 @@ Doge.prototype.feed = function (food)
 
 Doge.prototype.beHappy = function (happy)
 {
-	this.happiness += happy;
-	this.dispatchEvent('HAPPINESS_CHANGED');
+	self.happiness += happy;
+	self.happiness = inRange(self.happiness);
+	self.dispatchEvent('HAPPINESS_CHANGED');
 }
 
 Doge.prototype.energize = function (rest)
 {
-	this.energy += rest;
-	this.dispatchEvent('ENERGY_CHANGED');
+	self.energy += rest;
+	self.energy = inRange(self.energy);
+	self.dispatchEvent('ENERGY_CHANGED');
+}
+
+Doge.prototype.mine = function ()
+{
+	self.isMining = true;
+	self.instance.gotoAndStop('mining');
+	self.instance.mining.gotoAndPlay(0);
+	createjs.Ticker.addEventListener('tick', self.mineTick);
+}
+
+Doge.prototype.mineTick = function ()
+{
+	if (self.instance.mining.mine.currentFrame == self.instance.mining.mine.timeline.duration-1)
+	{
+		var coin = Math.ceil(Math.random()*3);
+		self.coins += coin;
+		self.dispatchEvent('COINS_CHANGED');
+
+		self.energize(-5);
+		self.feed(-5);
+	}
+}
+
+Doge.prototype.stopMining = function ()
+{
+	createjs.Ticker.removeEventListener('tick', self.mineTick);
+	self.instance.gotoAndStop('idle');
+	self.isMining = false;
 }
 
 Doge.prototype.moonball = function ()
@@ -71,6 +98,42 @@ Doge.prototype.moonballTick = function ()
 		self.energize(-100);
 		self.dispatchEvent('ACTION_OVER');
 	}
+}
+
+Doge.prototype.rest = function ()
+{
+	this.hungerRate = -1;
+	this.sadnessRate = -1;
+	this.tiredRate = 3;
+
+	this.isResting = true;
+
+	this.instance.gotoAndStop('resting');
+	this.instance.getChildAt(0).gotoAndPlay(0);
+}
+
+Doge.prototype.wakeUp = function ()
+{
+	this.hungerRate = -2;
+	this.sadnessRate = -2;
+	this.tiredRate = -3;
+
+	this.isResting = false;
+
+	this.instance.gotoAndStop('idle');
+}
+
+function inRange(stat)
+{
+	if (stat > 1180)
+	{
+		stat = 1180;
+	}
+	if (stat < 0)
+	{
+		stat = 0;
+	}
+	return stat;
 }
 
 // --------------- ALIVE STATS AND DECAY -----------------//
