@@ -19,7 +19,7 @@ function Doge(color)
 
 Doge.prototype.checkStatus = function ()
 {
-	if ((this.hunger == 0) || (this.happiness == 0) || (this.energy == 0))
+	if (this.hunger == 0)
 	{
 		this.setAlive(false);
 	}
@@ -33,7 +33,7 @@ Doge.prototype.feed = function (food)
 	{
 		self.beHappy(food/10);
 		self.instance.gotoAndStop('eating');
-		self.instance.getChildAt(0).gotoAndPlay(0);
+		self.instance.eating.gotoAndPlay(0);
 		self.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle'); self.dispatchEvent('ACTION_OVER');}, 2000);
 	}
 	self.dispatchEvent('HUNGER_CHANGED');
@@ -58,12 +58,13 @@ Doge.prototype.mine = function ()
 	self.isMining = true;
 	self.instance.gotoAndStop('mining');
 	self.instance.mining.gotoAndPlay(0);
+	self.instance.mining.mine.gotoAndPlay(0);
 	createjs.Ticker.addEventListener('tick', self.mineTick);
 }
 
 Doge.prototype.mineTick = function ()
 {
-	if (self.instance.mining.mine.currentFrame == self.instance.mining.mine.timeline.duration-1)
+	if (self.instance.mining.mine.getCurrentLabel() == 'getCoin')
 	{
 		var coin = Math.ceil(Math.random()*3);
 		self.coins += coin;
@@ -71,6 +72,11 @@ Doge.prototype.mineTick = function ()
 
 		self.energize(-5);
 		self.feed(-5);
+
+		if ((self.hunger <= 200) || (self.energy <= 200))
+		{
+			self.stopMining();
+		}
 	}
 }
 
@@ -79,18 +85,19 @@ Doge.prototype.stopMining = function ()
 	createjs.Ticker.removeEventListener('tick', self.mineTick);
 	self.instance.gotoAndStop('idle');
 	self.isMining = false;
+	self.dispatchEvent('ACTION_OVER');
 }
 
 Doge.prototype.moonball = function ()
 {
 	self.instance.gotoAndStop('moonball');
-	self.instance.getChildAt(0).gotoAndPlay(0);
+	self.instance.moonball.gotoAndPlay(0);
 	createjs.Ticker.addEventListener('tick', self.moonballTick);
 }
 
 Doge.prototype.moonballTick = function ()
 {
-	if (self.instance.getChildAt(0).currentFrame == self.instance.getChildAt(0).timeline.duration-1)
+	if (self.instance.moonball.currentFrame == self.instance.moonball.timeline.duration-1)
 	{
 		createjs.Ticker.removeEventListener('tick', self.moonballTick);
 		self.instance.gotoAndStop('idle');
@@ -104,23 +111,41 @@ Doge.prototype.rest = function ()
 {
 	this.hungerRate = -1;
 	this.sadnessRate = -1;
-	this.tiredRate = 3;
+	this.tiredRate = 5;
 
 	this.isResting = true;
 
 	this.instance.gotoAndStop('resting');
-	this.instance.getChildAt(0).gotoAndPlay(0);
+	this.instance.resting.gotoAndPlay(0);
 }
 
 Doge.prototype.wakeUp = function ()
 {
 	this.hungerRate = -2;
 	this.sadnessRate = -2;
-	this.tiredRate = -3;
+	this.tiredRate = -2;
 
 	this.isResting = false;
 
 	this.instance.gotoAndStop('idle');
+	self.dispatchEvent('ACTION_OVER');
+}
+
+Doge.prototype.sayNo = function ()
+{
+	this.instance.gotoAndStop('no');
+	this.instance.no.gotoAndPlay(0);
+	createjs.Ticker.addEventListener('tick', this.noTick)
+}
+
+Doge.prototype.noTick = function ()
+{
+	if (self.instance.no.currentFrame == self.instance.no.timeline.duration-1)
+	{
+		createjs.Ticker.removeEventListener('tick', self.noTick)
+		self.instance.gotoAndStop('idle');
+		self.dispatchEvent('ACTION_OVER');
+	}
 }
 
 function inRange(stat)

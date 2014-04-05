@@ -74,7 +74,7 @@ DogeGame = window.DogeGame || {};
 		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
 		myDoge.addEventListener('COINS_CHANGED', setCoinText);
 		myDoge.addEventListener('DOGE_DEAD', killDoge);
-		myDoge.addEventListener('ACTION_OVER', enableMenu);
+		myDoge.addEventListener('ACTION_OVER', function(){ enableMenu(); });
 
 		Game.addChild(myDoge);
 		// ------------------------ DOGE SETUP ------------------------ //
@@ -91,25 +91,46 @@ DogeGame = window.DogeGame || {};
 	function feedPet(event)
 	{
 		disableMenu();
-		myDoge.feed(200)
+		if (myDoge.hunger < 1000)
+		{
+			myDoge.feed(200)
+		}
+		else
+		{
+			myDoge.sayNo();
+		}
 	}
 
 	function playPet(event)
 	{
 		disableMenu();
-		myDoge.moonball();
+		if (myDoge.energy < 200)
+		{
+			myDoge.sayNo();
+		}
+		else
+		{
+			myDoge.moonball();
+		}
 	}
 
 	function restPet(event)
 	{
 		if (!myDoge.isResting)
 		{
-			disableMenu(Game.menu.restPet);
-			myDoge.rest();
+			if (myDoge.energy > 1000)
+			{
+				disableMenu();
+				myDoge.sayNo();
+			}
+			else
+			{
+				disableMenu(Game.menu.restPet);
+				myDoge.rest();
+			}
 		}
 		else
 		{
-			enableMenu(Game.menu.restPet);
 			myDoge.wakeUp();
 		}
 	}
@@ -118,12 +139,19 @@ DogeGame = window.DogeGame || {};
 	{
 		if (!myDoge.isMining)
 		{
-			disableMenu(Game.menu.mineDoge);
-			myDoge.mine();
+			if ((myDoge.hunger < 200) || (myDoge.energy < 200))
+			{
+				disableMenu();
+				myDoge.sayNo();
+			}
+			else
+			{
+				disableMenu(Game.menu.mineDoge);
+				myDoge.mine();
+			}
 		}
 		else
 		{
-			enableMenu(Game.menu.mineDoge);
 			myDoge.stopMining();
 		}
 	}
@@ -170,7 +198,6 @@ DogeGame = window.DogeGame || {};
 		}
 		if (button)
 		{
-			console.log(button);
 			button.mouseEnabled = true;
 			button.alpha = 1;
 			button.gotoAndStop(1)
@@ -184,10 +211,7 @@ DogeGame = window.DogeGame || {};
 		{
 			Game.menu.children[i].mouseEnabled = true;
 			Game.menu.children[i].alpha = 1;
-		}
-		if (button)
-		{
-			button.gotoAndStop(0);
+			Game.menu.children[i].gotoAndStop(0);
 		}
 		stage.update();
 	}
