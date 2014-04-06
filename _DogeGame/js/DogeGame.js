@@ -12,9 +12,9 @@ DogeGame = window.DogeGame || {};
 	var dogeColors = new Array('tan', 'cream', 'black');
 
 	//var statusLevel = [20,40,60,80,100];
-	var statusName = ['worst','bad','average','good', 'great','best'];
+	var statusName = ['worst','bad','average','good','great','best'];
 
-	var Game, myDoge;
+	var Game, myDoge, myInventory;
 
 	window.onload = function()
 	{
@@ -69,6 +69,8 @@ DogeGame = window.DogeGame || {};
 		setHappinessText();
 		setEnergyText();
 		setCoinText();
+		Game.stats.coin.gotoAndStop(0);
+		
 		myDoge.addEventListener('HUNGER_CHANGED', setHungerText);
 		myDoge.addEventListener('HAPPINESS_CHANGED', setHappinessText);
 		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
@@ -79,21 +81,46 @@ DogeGame = window.DogeGame || {};
 		Game.addChild(myDoge);
 		// ------------------------ DOGE SETUP ------------------------ //
 
+		// --------------------- INVENTORY SETUP ---------------------- //
+		myInventory = {};
+		myInventory.food = [3,1];
+		// --------------------- INVENTORY SETUP ---------------------- //
+
 		// ------------------------ MENU SETUP ------------------------ //
-		Game.menu.feedPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', feedPet); });
+		Game.shop.visible = false;
+
+		Game.menu.feedPet.gotoAndStop(0);
+		Game.menu.feedPet.amount.text = myInventory.food[0];
+		for (var i = 0; i < json.food.length; i++)
+		{
+			Game.menu.feedPet[json.food[i].name].addEventListener('mousedown', function(e){ e.addEventListener('mouseup', feedPet); });
+		}
+		Game.menu.feedPet.prev.addEventListener('click', prevFood);
+		Game.menu.feedPet.next.addEventListener('click', nextFood);
+		
 		Game.menu.playPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', playPet); });
+		
 		Game.menu.restPet.gotoAndStop(0);
 		Game.menu.restPet.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', restPet); });
+
+		Game.menu.mineDoge.gotoAndStop(0);
 		Game.menu.mineDoge.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', mineDoge); });
+
+		Game.menu.shop.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', openShop); });
 		// ------------------------ MENU SETUP ------------------------ //
 	}
+
+	// ---------------- FOOD CONTROLS ---------------- //
 
 	function feedPet(event)
 	{
 		disableMenu();
-		if (myDoge.hunger < 1000)
+		var index = Game.menu.feedPet.currentFrame;
+		if ((myDoge.hunger <= myDoge.maxStats) && (myInventory.food[index] > 0))
 		{
-			myDoge.feed(200)
+			myInventory.food[index]--;
+			Game.menu.feedPet.amount.text = myInventory.food[index];
+			myDoge.feed(json.food[index].amount);
 		}
 		else
 		{
@@ -101,10 +128,35 @@ DogeGame = window.DogeGame || {};
 		}
 	}
 
+	function prevFood(event)
+	{
+		var index = Game.menu.feedPet.currentFrame-1;
+		if (index < 0)
+		{
+			index = Game.menu.feedPet.timeline.duration-1;
+			console.log(Game.menu.feedPet.timeline.duration)
+		}
+		Game.menu.feedPet.gotoAndStop(index);
+		Game.menu.feedPet.amount.text = myInventory.food[index];
+	}
+
+	function nextFood(event)
+	{
+		var index = Game.menu.feedPet.currentFrame+1;
+		if (index > Game.menu.feedPet.timeline.duration-1)
+		{
+			index = 0;
+		}
+		Game.menu.feedPet.gotoAndStop(index);
+		Game.menu.feedPet.amount.text = myInventory.food[index];
+	}
+
+	// ---------------- FOOD CONTROLS ---------------- //
+
 	function playPet(event)
 	{
 		disableMenu();
-		if (myDoge.energy < 200)
+		if (myDoge.energy < myDoge.lowStats)
 		{
 			myDoge.sayNo();
 		}
@@ -118,7 +170,7 @@ DogeGame = window.DogeGame || {};
 	{
 		if (!myDoge.isResting)
 		{
-			if (myDoge.energy > 1000)
+			if (myDoge.energy > myDoge.maxStats)
 			{
 				disableMenu();
 				myDoge.sayNo();
@@ -139,7 +191,7 @@ DogeGame = window.DogeGame || {};
 	{
 		if (!myDoge.isMining)
 		{
-			if ((myDoge.hunger < 200) || (myDoge.energy < 200))
+			if ((myDoge.hunger < myDoge.lowStats) || (myDoge.energy < myDoge.lowStats))
 			{
 				disableMenu();
 				myDoge.sayNo();
@@ -156,34 +208,94 @@ DogeGame = window.DogeGame || {};
 		}
 	}
 
+	// --------------- SHOP SETUP --------------- //
+	function openShop(event)
+	{
+		disableMenu();
+		
+		Game.shop.coinsOwned.text = myDoge.coins;
+		Game.shop.total.text = 0;
+		Game.shop.coinsRemaining.text = myDoge.coins;
+
+		for (var i = 0; i < json.food.length; i++)
+		{
+			Game.shop[json.food[i].name].price.text = json.food[i].price;
+			Game.shop[json.food[i].name].amount.text = 0;
+			Game.shop[json.food[i].name].up.addEventListener('click', addProduct);
+			Game.shop[json.food[i].name].down.addEventListener('click', removeProduct);
+		}
+
+		Game.shop.close.addEventListener('click', function(){ Game.shop.visible = false; enableMenu(); });
+		Game.shop.confirm.addEventListener('click', confirmBuy);
+		Game.addChild(Game.shop);
+		Game.shop.visible = true;
+	}
+
+	function addProduct(event)
+	{
+		var product = event.currentTarget.parent;
+		product.amount.text++;
+		Game.shop.total.text += product.price.text;
+		Game.shop.coinsRemaining.text -= product.price.text;
+	}
+
+	function removeProduct(event)
+	{
+		var product = event.currentTarget.parent;
+		if (product.amount.text > 0)
+		{
+			product.amount.text--;
+			Game.shop.total.text -= product.price.text;
+			Game.shop.coinsRemaining.text += product.price.text;
+		}
+	}
+
+	function confirmBuy(event)
+	{
+		if (Game.shop.coinsRemaining.text >= 0)
+		{
+			for (var i = 0; i < json.food.length; i++)
+			{
+				myInventory.food[i] += Game.shop[json.food[i].name].amount.text;
+			}
+			myDoge.earn(-Game.shop.total.text)
+			Game.menu.feedPet.amount.text = myInventory.food[Game.menu.feedPet.currentFrame];
+			enableMenu();
+			Game.shop.visible = false;
+		}
+	}
+	// --------------- SHOP SETUP --------------- //
+
+	// --------------- TEXT CONTROLS -------------- //
 	function setHungerText(event)
 	{
-		var hunger = Math.floor(myDoge.hunger/200);
-		Game.status.hunger_txt.text = json.hunger[statusName[hunger]];
+		var hunger = Math.floor(myDoge.hunger/myDoge.lowStats);
+		Game.stats.hunger_txt.text = json.hunger[statusName[hunger]];
 	}
 
 	function setHappinessText(event)
 	{
-		var happiness = Math.floor(myDoge.happiness/200);
-		Game.status.happiness_txt.text = json.happiness[statusName[happiness]];
+		var happiness = Math.floor(myDoge.happiness/myDoge.lowStats);
+		Game.stats.happiness_txt.text = json.happiness[statusName[happiness]];
 	}
 
 	function setEnergyText(event)
 	{
-		var energy = Math.floor(myDoge.energy/200);
-		Game.status.energy_txt.text = json.energy[statusName[energy]];
+		var energy = Math.floor(myDoge.energy/myDoge.lowStats);
+		Game.stats.energy_txt.text = json.energy[statusName[energy]];
 	}
 
 	function setCoinText(event)
 	{
-		Game.status.doge_txt.text = myDoge.coins;
+		Game.stats.doge_txt.text = myDoge.coins;
 	}
+	// --------------- TEXT CONTROLS -------------- //
 
 	function killDoge(event)
 	{
-		Game.status.hunger_txt.text = json.dead;
-		Game.status.happiness_txt.text = json.dead;
-		Game.status.energy_txt.text = json.dead;
+		Game.stats.hunger_txt.text = json.dead;
+		Game.stats.happiness_txt.text = json.dead;
+		Game.stats.energy_txt.text = json.dead;
 
 		Game.menu.mouseEnabled = false;
 	}
@@ -193,7 +305,7 @@ DogeGame = window.DogeGame || {};
 		for (var i = 0; i < Game.menu.children.length; i++)
 		{
 			Game.menu.children[i].mouseEnabled = false;
-			Game.menu.children[i].gotoAndStop(0);
+			//Game.menu.children[i].gotoAndStop(0);
 			Game.menu.children[i].alpha = 0.5;
 		}
 		if (button)
@@ -211,7 +323,7 @@ DogeGame = window.DogeGame || {};
 		{
 			Game.menu.children[i].mouseEnabled = true;
 			Game.menu.children[i].alpha = 1;
-			Game.menu.children[i].gotoAndStop(0);
+			//Game.menu.children[i].gotoAndStop(0);
 		}
 		stage.update();
 	}

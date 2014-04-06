@@ -29,5 +29,11 @@
 		"best": "wow"
 	},
 
-	"dead":"such dead"
+	"dead":"such dead",
+
+	"food":
+	[
+		{"name": "plain", "price":5, "amount":150},
+		{"name": "good", "price":10, "amount":500}
+	]
 }
