@@ -4,12 +4,11 @@ DogeGame = window.DogeGame || {};
 {
 	var root;
 	var canvas, stage;
-	var images = [];
 	var json;
 	var raiz;
 
 	//var dogeColors = ['tan', 'cream', 'black'];
-	var dogeColors = new Array('tan', 'cream', 'black');
+//	var dogeColors = new Array('tan', 'cream', 'black');
 
 	//var statusLevel = [20,40,60,80,100];
 	var statusName = ['worst','bad','average','good','great','best'];
@@ -19,7 +18,12 @@ DogeGame = window.DogeGame || {};
 	window.onload = function()
 	{
 		//----- LOADING ASSETS -----//
-		/*var manifest = [
+		canvas = document.getElementById("canvas");
+
+		/*images =  images || {};
+
+		var manifest = [
+			{src:"./images/Bitmap1.png", id:"Bitmap1"}
 		];
 
 		var loader = new createjs.LoadQueue(false);
@@ -35,7 +39,7 @@ DogeGame = window.DogeGame || {};
 
 	function loadJson(event)
 	{
-		console.log('json');*/
+		console.log(images)*/
 		$.getJSON("./txt/DogeText.json", jsonLoaded.bind(this)).error(function(jqXhr, textStatus, error) {
 					alert("ERROR: " + textStatus + ", " + error);
 		});
@@ -45,7 +49,6 @@ DogeGame = window.DogeGame || {};
 	{
 		json = _json;
 
-		canvas = document.getElementById("canvas");
 		stage = new createjs.Stage(canvas);
 
 		raiz = new lib.DogePet();
@@ -56,14 +59,17 @@ DogeGame = window.DogeGame || {};
 		createjs.Ticker.setFPS(24);
 		createjs.Ticker.addEventListener("tick", stage);
 
-		newGame();
+		startGame();
 	}
 
 	//----- NEW GAME -----//
-	function newGame()
+	function startGame()
 	{
 		// ------------------------ DOGE SETUP ------------------------ //
-		myDoge = new Doge('tan');
+		var save = loadFromStorage() || json.newGame;
+
+		myDoge = new Doge(save.doge.color, save.doge.age, save.doge.hunger, save.doge.happiness, save.doge.energy, save.doge.coins);
+		myInventory = save.inventory;
 
 		setHungerText();
 		setHappinessText();
@@ -75,19 +81,14 @@ DogeGame = window.DogeGame || {};
 		myDoge.addEventListener('HAPPINESS_CHANGED', setHappinessText);
 		myDoge.addEventListener('ENERGY_CHANGED', setEnergyText);
 		myDoge.addEventListener('COINS_CHANGED', setCoinText);
-		myDoge.addEventListener('DOGE_DEAD', killDoge);
+		//myDoge.addEventListener('DOGE_DEAD', killDoge);
 		myDoge.addEventListener('ACTION_OVER', function(){ enableMenu(); });
 
 		Game.addChild(myDoge);
 		// ------------------------ DOGE SETUP ------------------------ //
 
-		// --------------------- INVENTORY SETUP ---------------------- //
-		myInventory = {};
-		myInventory.food = [3,1];
-		// --------------------- INVENTORY SETUP ---------------------- //
-
 		// ------------------------ MENU SETUP ------------------------ //
-		Game.shop.visible = false;
+		//Game.shop.visible = false;
 
 		Game.menu.feedPet.gotoAndStop(0);
 		Game.menu.feedPet.amount.text = myInventory.food[0];
@@ -108,6 +109,8 @@ DogeGame = window.DogeGame || {};
 
 		Game.menu.shop.addEventListener('mousedown', function(e){ e.addEventListener('mouseup', openShop); });
 		// ------------------------ MENU SETUP ------------------------ //
+
+		Game.save = setInterval(saveGame, 60000);
 	}
 
 	// ---------------- FOOD CONTROLS ---------------- //
@@ -212,6 +215,8 @@ DogeGame = window.DogeGame || {};
 	function openShop(event)
 	{
 		disableMenu();
+
+		Game.shop = new lib.Shop();
 		
 		Game.shop.coinsOwned.text = myDoge.coins;
 		Game.shop.total.text = 0;
@@ -225,7 +230,7 @@ DogeGame = window.DogeGame || {};
 			Game.shop[json.food[i].name].down.addEventListener('click', removeProduct);
 		}
 
-		Game.shop.close.addEventListener('click', function(){ Game.shop.visible = false; enableMenu(); });
+		Game.shop.close.addEventListener('click', function(){ Game.removeChild(Game.shop); Game.shop = null; enableMenu(); });
 		Game.shop.confirm.addEventListener('click', confirmBuy);
 		Game.addChild(Game.shop);
 		Game.shop.visible = true;
@@ -289,8 +294,7 @@ DogeGame = window.DogeGame || {};
 	{
 		Game.stats.doge_txt.text = myDoge.coins;
 	}
-	// --------------- TEXT CONTROLS -------------- //
-
+	
 	function killDoge(event)
 	{
 		Game.stats.hunger_txt.text = json.dead;
@@ -299,6 +303,7 @@ DogeGame = window.DogeGame || {};
 
 		Game.menu.mouseEnabled = false;
 	}
+	// --------------- TEXT CONTROLS -------------- //
 
 	function disableMenu(button)
 	{
@@ -327,6 +332,28 @@ DogeGame = window.DogeGame || {};
 		}
 		stage.update();
 	}
+
+	// --------------- STORAGE CONTROLS -------------- //
+	function loadFromStorage()
+	{
+		var save = localStorage.getItem('DogeGame');
+		return save && JSON.parse(save);
+	}
+
+	function saveGame()
+	{
+		var save = {};
+		save.doge = {color: myDoge.color, age: myDoge.age, hunger: myDoge.hunger, happiness: myDoge.happiness, energy: myDoge.energy, coins: myDoge.coins};
+		save.inventory = myInventory;
+		localStorage.setItem('DogeGame', JSON.stringify(save))
+	}
+
+	DogeGame.reset = function ()
+	{
+		localStorage.clear('DogeGame');
+		location.reload();
+	}
+	// --------------- STORAGE CONTROLS -------------- //
 
 	DogeGame.getDoge = function (){return myDoge}
 })();

@@ -33,7 +33,13 @@
 
 	"food":
 	[
-		{"name": "plain", "price":5, "amount":150},
+		{"name": "plain", "price":5, "amount":200},
 		{"name": "good", "price":10, "amount":500}
-	]
+	],
+
+	"newGame":
+	{
+		"doge": { "color": "tan", "age": "cub", "hunger": 1000, "happiness": 1000, "energy": 1000, "coins": 10},
+		"inventory": { "food": [3,1] }
+	}
 }

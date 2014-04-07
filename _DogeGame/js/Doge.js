@@ -1,18 +1,24 @@
 Doge.prototype = new lib.Doge();
 
-function Doge(color)
+function Doge(color, age, hunger, happiness, energy, coins)
 {
 	self = this;
 
 	this.color = color;
-	this.instance.gotoAndStop('idle');
+	this.gotoAndStop(this.color);
 
-	this.hunger = 1000;
-	this.happiness = 1000;
-	this.energy = 1000;
-	this.coins = 10;
+	this.age = age ? age : 'cub';
+	this[color].gotoAndStop(this.age);
 
-	this.maxStats = 1999;
+	this.dog = this[this.color][this.age];
+	this.dog.gotoAndStop('idle');
+
+	this.hunger = hunger;
+	this.happiness = happiness;
+	this.energy = energy;
+	this.coins = coins;
+
+	this.maxStats = 2399;
 	this.lowStats = 400;
 
 	this.setAlive(true);
@@ -35,9 +41,9 @@ Doge.prototype.feed = function (food)
 	if (food > 0)
 	{
 		self.beHappy(food/2);
-		self.instance.gotoAndStop('eating');
-		self.instance.eating.gotoAndPlay(0);
-		self.goIdle = setTimeout(function(){self.instance.gotoAndStop('idle'); self.dispatchEvent('ACTION_OVER');}, 2000);
+		self.dog.gotoAndStop('eating');
+		self.dog.eating.gotoAndPlay(0);
+		self.goIdle = setTimeout(function(){self.dog.gotoAndStop('idle'); self.dispatchEvent('ACTION_OVER');}, 2000);
 	}
 	self.dispatchEvent('HUNGER_CHANGED');
 }
@@ -59,21 +65,21 @@ Doge.prototype.energize = function (rest)
 Doge.prototype.mine = function ()
 {
 	self.isMining = true;
-	self.instance.gotoAndStop('mining');
-	self.instance.mining.gotoAndPlay(0);
-	self.instance.mining.mine.gotoAndPlay(0);
+	self.dog.gotoAndStop('mining');
+	self.dog.mining.gotoAndPlay(0);
+	self.dog.mining.mine.gotoAndPlay(0);
 	createjs.Ticker.addEventListener('tick', self.mineTick);
 }
 
 Doge.prototype.mineTick = function ()
 {
-	if (self.instance.mining.mine.getCurrentLabel() == 'getCoin')
+	if (self.dog.mining.mine.getCurrentLabel() == 'getCoin')
 	{
 		var coin = Math.ceil(Math.random()*3);
 		self.earn(coin);
 
-		self.energize(-3);
-		self.feed(-3);
+		self.energize(-5);
+		self.feed(-5);
 
 		if ((self.hunger <= self.lowStats) || (self.energy <= self.lowStats))
 		{
@@ -85,7 +91,7 @@ Doge.prototype.mineTick = function ()
 Doge.prototype.stopMining = function ()
 {
 	createjs.Ticker.removeEventListener('tick', self.mineTick);
-	self.instance.gotoAndStop('idle');
+	self.dog.gotoAndStop('idle');
 	self.isMining = false;
 	self.dispatchEvent('ACTION_OVER');
 }
@@ -98,17 +104,17 @@ Doge.prototype.earn = function (coin)
 
 Doge.prototype.moonball = function ()
 {
-	self.instance.gotoAndStop('moonball');
-	self.instance.moonball.gotoAndPlay(0);
+	self.dog.gotoAndStop('moonball');
+	self.dog.moonball.gotoAndPlay(0);
 	createjs.Ticker.addEventListener('tick', self.moonballTick);
 }
 
 Doge.prototype.moonballTick = function ()
 {
-	if (self.instance.moonball.currentFrame == self.instance.moonball.timeline.duration-1)
+	if (self.dog.moonball.currentFrame == self.dog.moonball.timeline.duration-1)
 	{
 		createjs.Ticker.removeEventListener('tick', self.moonballTick);
-		self.instance.gotoAndStop('idle');
+		self.dog.gotoAndStop('idle');
 		self.beHappy(400);
 		self.energize(-200);
 		self.dispatchEvent('ACTION_OVER');
@@ -117,41 +123,41 @@ Doge.prototype.moonballTick = function ()
 
 Doge.prototype.rest = function ()
 {
-	this.hungerRate = -1.5;
-	this.sadnessRate = -1.5;
-	this.tiredRate = 3;
+	this.hungerRate = -2;
+	this.sadnessRate = -2;
+	this.tiredRate = 10;
 
 	this.isResting = true;
 
-	this.instance.gotoAndStop('resting');
-	this.instance.resting.gotoAndPlay(0);
+	this.dog.gotoAndStop('resting');
+	this.dog.resting.gotoAndPlay(0);
 }
 
 Doge.prototype.wakeUp = function ()
 {
-	this.hungerRate = -1.5;
-	this.sadnessRate = -1.5;
-	this.tiredRate = -1.5;
+	this.hungerRate = -2;
+	this.sadnessRate = -2;
+	this.tiredRate = -2;
 
 	this.isResting = false;
 
-	this.instance.gotoAndStop('idle');
+	this.dog.gotoAndStop('idle');
 	self.dispatchEvent('ACTION_OVER');
 }
 
 Doge.prototype.sayNo = function ()
 {
-	this.instance.gotoAndStop('no');
-	this.instance.no.gotoAndPlay(0);
+	this.dog.gotoAndStop('no');
+	this.dog.no.gotoAndPlay(0);
 	createjs.Ticker.addEventListener('tick', this.noTick)
 }
 
 Doge.prototype.noTick = function ()
 {
-	if (self.instance.no.currentFrame == self.instance.no.timeline.duration-1)
+	if (self.dog.no.currentFrame == self.dog.no.timeline.duration-1)
 	{
 		createjs.Ticker.removeEventListener('tick', self.noTick)
-		self.instance.gotoAndStop('idle');
+		self.dog.gotoAndStop('idle');
 		self.dispatchEvent('ACTION_OVER');
 	}
 }
@@ -179,7 +185,7 @@ Doge.prototype.setAlive = function (alive, hunger, happiness, energy)
 	}
 	else
 	{
-		this.instance.gotoAndStop('dead');
+		this.dog.gotoAndStop('dead');
 		clearInterval(this.decayInterval);
 		this.dispatchEvent('DOGE_DEAD');
 	}
@@ -187,9 +193,9 @@ Doge.prototype.setAlive = function (alive, hunger, happiness, energy)
 
 Doge.prototype.startDecay = function ()
 {
-	this.hungerRate = -1.5;
-	this.sadnessRate = -1.5;
-	this.tiredRate = -1.5;
+	this.hungerRate = -2;
+	this.sadnessRate = -2;
+	this.tiredRate = -2;
 
 	this.decayInterval = setInterval(this.decayStatus, 6000)
 }
