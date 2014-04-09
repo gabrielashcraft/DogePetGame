@@ -1,4 +1,4 @@
-#Doge Pet - Have your own Shibe!#
+#God Shibe Pet - Have your own Shibe!#
 
 ####1. What is God Shibe Pet?####
   God Shibe Pet is a virtual pet game inspired on Dogecoin. In God Shibe Pet, you'll have your own Shibe, to feed, play, and raise. To the moon!
